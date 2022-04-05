@@ -4,7 +4,6 @@ const {
   getBookById,
   editBookById,
   deleteBook,
-  GetSearch,
 } = require('./Handler');
 
 const routes = [
@@ -33,10 +32,5 @@ const routes = [
     path: '/books/{idBook}',
     handler: deleteBook,
   },
-  // {
-  //   method: 'GET',
-  //   path: '/books',
-  //   handler: GetSearch,
-  // },
 ];
 module.exports = routes;

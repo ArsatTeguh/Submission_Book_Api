@@ -18,25 +18,7 @@ const addBooks = (req, h) => {
   const insertedAt = new Date().toISOString();
   const updatedAt = insertedAt;
 
-  const dataBook = {
-    bookId,
-    name,
-    year,
-    author,
-    summary,
-    publisher,
-    pageCount,
-    readPage,
-    reading,
-    insertedAt,
-    updatedAt,
-  };
-
-  Book.push(dataBook);
-
-  const isReady = Book.filter((data) => data.bookId === bookId).length > 0;
-
-  if (name === undefined || name === '') {
+  if (!name) {
     const response = h.response({
       status: 'fail',
       message: 'Gagal menambahkan buku. Mohon isi nama buku',
@@ -53,6 +35,23 @@ const addBooks = (req, h) => {
     response.code(400);
     return response;
   }
+
+  const dataBook = {
+    bookId,
+    name,
+    year,
+    author,
+    summary,
+    publisher,
+    pageCount,
+    readPage,
+    reading,
+    insertedAt,
+    updatedAt,
+  };
+
+  Book.push(dataBook);
+  const isReady = Book.filter((data) => data.bookId === bookId).length > 0;
 
   if (isReady) {
     const response = h.response({
@@ -77,9 +76,58 @@ const addBooks = (req, h) => {
 // ========================== /Add Items Books ================================
 
 // ========================== GET All Books ================================
-const getAllBook = (req, h) => {
-  const res = h.response({
-    status: 'success',
+const getAllBook = (request, h) => {
+  const { name, reading, finished } = request.query;
+  if (name) {
+    const book = Book.filter((book) => book.name.toLowerCase().includes(name.toLowerCase()));
+    const response = h.response({
+      status: "success",
+      data: {
+        books: book.map((book) => ({
+          id: book.bookId,
+          name: book.name,
+          publisher: book.publisher,
+        })),
+      },
+    });
+    response.code(200);
+    return response;
+  }
+
+  if (reading) {
+    const book = Book.filter((book) => Number(book.reading) === Number(reading));
+    const response = h.response({
+      status: "success",
+      data: {
+        books: book.map((book) => ({
+          id: book.bookId,
+          name: book.name,
+          publisher: book.publisher,
+        })),
+      },
+    });
+    response.code(200);
+    return response;
+  }
+
+  if (finished) {
+    const book = Book.filter((book) => Number(book.finished) === Number(finished));
+    const response = h.response({
+      status: "success",
+      data: {
+        books: book.map((book) => ({
+          id: book.bookId,
+          name: book.name,
+          publisher: book.publisher,
+        })),
+      },
+    });
+    response.code(200);
+    return response;
+  }
+
+  const response = h.response({
+    status: "success",
     data: {
       books: Book.map((book) => ({
         id: book.bookId,
@@ -88,36 +136,32 @@ const getAllBook = (req, h) => {
       })),
     },
   });
-
-  res.code(200);
-  return res;
+  response.code(200);
+  return response;
 };
 
 // ========================== /GET All Books ================================
 
 // ========================== GET ById Books ================================
-const getBookById = (req, h) => {
-  const { bookId } = req.params;
+const getBookById = (request, h) => {
+  const { bookId } = request.params;
+  const book = Book.filter((book) => book.bookId === bookId)[0];
 
-  const book = Book.filter((n) => n.bookId === bookId)[0]; // return sebuah objek data
-
-  if (book !== undefined || book !== null) {
+  if (book === undefined) {
     const response = h.response({
-      status: 'success',
-      message: 'Buku berhasil',
-      data: {
-        book,
-      },
+      status: 'fail',
+      message: 'Buku tidak ditemukan',
     });
-    response.code(200);
+    response.code(404);
     return response;
   }
-
   const response = h.response({
-    status: 'fail',
-    message: 'Buku tidak ditemukan',
+    status: 'success',
+    data: {
+      book,
+    },
   });
-  response.code(404);
+  response.code(200);
   return response;
 };
 // ========================== /GET ById Books ================================
@@ -126,22 +170,22 @@ const getBookById = (req, h) => {
 const editBookById = (request, h) => {
   const { bookId } = request.params;
   const {
-    name, year, author, summary, publisher, pageCount, readPage, reading
+    name, year, author, summary, publisher, pageCount, readPage, reading,
   } = request.payload;
   const updatedAt = new Date().toISOString();
-  const index = Book.findIndex((book) => book.id === bookId);
+  const index = Book.findIndex((book) => book.bookId === bookId);
 
-  if (name === undefined || name === null) {
+  if (!name) {
     return h.response({
       status: 'fail',
-      message: 'Gagal memperbarui buku. Mohon isi nama buku'
+      message: 'Gagal memperbarui buku. Mohon isi nama buku',
     }).code(400);
   }
 
   if (readPage > pageCount) {
     return h.response({
       status: 'fail',
-      message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount'
+      message: 'Gagal memperbarui buku. readPage tidak boleh lebih besar dari pageCount',
     }).code(400);
   }
 
@@ -161,13 +205,12 @@ const editBookById = (request, h) => {
 
     return h.response({
       status: 'success',
-      message: 'Buku berhasil diperbarui'
+      message: 'Buku berhasil diperbarui',
     }).code(200);
   }
-
   return h.response({
     status: 'fail',
-    message: 'Gagal memperbarui buku. Id tidak ditemukan'
+    message: 'Gagal memperbarui buku. Id tidak ditemukan',
   }).code(404);
 };
 // ========================== /Edit Items Book ================================
@@ -197,20 +240,10 @@ const deleteBook = (req, h) => {
 };
 // ========================== /Delete Items Books ================================
 
-// ========================== GET Items Search ==================================
-const GetSearch = (req, h) => {
-  const Search = req.query.name;
-  const newBook = [...Book]
-  console.log(Search);
-  console.log(newBook);
-};
-// ========================== /GET Items Search ==================================
-
 module.exports = {
   addBooks,
   getAllBook,
   getBookById,
   editBookById,
   deleteBook,
-  GetSearch,
 };
