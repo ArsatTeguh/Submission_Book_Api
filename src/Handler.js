@@ -14,10 +14,14 @@ const addBooks = (req, h) => {
     reading,
   } = req.payload;
 
-  const bookId = nanoid(16);
+  const id = nanoid(16);
   const insertedAt = new Date().toISOString();
   const updatedAt = insertedAt;
-
+  let finished = false;
+  if (pageCount === readPage) {
+    // eslint-disable-next-line no-unused-vars
+    finished = true;
+  }
   if (!name) {
     const response = h.response({
       status: 'fail',
@@ -37,7 +41,7 @@ const addBooks = (req, h) => {
   }
 
   const dataBook = {
-    bookId,
+    id,
     name,
     year,
     author,
@@ -51,14 +55,14 @@ const addBooks = (req, h) => {
   };
 
   Book.push(dataBook);
-  const isReady = Book.filter((data) => data.bookId === bookId).length > 0;
+  const isReady = Book.filter((data) => data.id === id).length > 0;
 
   if (isReady) {
     const response = h.response({
       status: 'success',
       message: 'Buku berhasil ditambahkan',
       data: {
-        bookId,
+        bookId: id,
       },
     });
     response.code(201);
@@ -84,7 +88,7 @@ const getAllBook = (request, h) => {
       status: "success",
       data: {
         books: book.map((book) => ({
-          id: book.bookId,
+          id: book.id,
           name: book.name,
           publisher: book.publisher,
         })),
@@ -100,7 +104,7 @@ const getAllBook = (request, h) => {
       status: "success",
       data: {
         books: book.map((book) => ({
-          id: book.bookId,
+          id: book.id,
           name: book.name,
           publisher: book.publisher,
         })),
@@ -116,7 +120,7 @@ const getAllBook = (request, h) => {
       status: "success",
       data: {
         books: book.map((book) => ({
-          id: book.bookId,
+          id: book.id,
           name: book.name,
           publisher: book.publisher,
         })),
@@ -130,7 +134,7 @@ const getAllBook = (request, h) => {
     status: "success",
     data: {
       books: Book.map((book) => ({
-        id: book.bookId,
+        id: book.id,
         name: book.name,
         publisher: book.publisher,
       })),
@@ -145,7 +149,7 @@ const getAllBook = (request, h) => {
 // ========================== GET ById Books ================================
 const getBookById = (request, h) => {
   const { bookId } = request.params;
-  const book = Book.filter((book) => book.bookId === bookId)[0];
+  const book = Book.filter((book) => book.id === bookId)[0];
 
   if (book === undefined) {
     const response = h.response({
@@ -173,7 +177,7 @@ const editBookById = (request, h) => {
     name, year, author, summary, publisher, pageCount, readPage, reading,
   } = request.payload;
   const updatedAt = new Date().toISOString();
-  const index = Book.findIndex((book) => book.bookId === bookId);
+  const index = Book.findIndex((book) => book.id === bookId);
 
   if (!name) {
     return h.response({
@@ -219,7 +223,7 @@ const editBookById = (request, h) => {
 const deleteBook = (req, h) => {
   const { bookId } = req.params;
 
-  const index = Book.findIndex((data) => data.bookId === bookId);
+  const index = Book.findIndex((data) => data.id === bookId);
 
   if (index !== -1) {
     Book.splice(index, 1);
